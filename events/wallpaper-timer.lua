@@ -8,7 +8,20 @@
 -- (8-Sync-Dev/flash-term).
 
 local wezterm = require('wezterm')
-local time = require('wezterm.time')
+
+-- Try wezterm.time (C plugin, requires allow_builtin_plugins = true).
+-- Fall back to wezterm.call_after. If neither is available, M.setup
+-- will pcall-wrap itself so wallpaper-timer failing never blocks
+-- wezterm.lua from loading the rest of the config.
+local ok_time, time = pcall(require, 'wezterm.time')
+if not ok_time then
+   time = wezterm.call_after and { call_after = wezterm.call_after } or nil
+   if time then
+      wezterm.log_warn('wallpaper-timer: wezterm.time unavailable, using wezterm.call_after')
+   else
+      wezterm.log_warn('wallpaper-timer: no timer API available, wallpaper cycling disabled')
+   end
+end
 
 local M = {}
 
@@ -106,6 +119,13 @@ end
 ---Start the wallpaper timer. Idempotent — safe to call once per setup.
 ---@param user_opts WallpaperTimerOptions|nil
 M.setup = function(user_opts)
+   -- Guard: if no timer API is available at all, log and bail out cleanly.
+   -- This prevents wallpaper-timer from crashing the entire config load.
+   if not time then
+      wezterm.log_warn('wallpaper-timer: setup skipped — no timer API')
+      return
+   end
+
    if user_opts then
       for k, v in pairs(user_opts) do
          opts[k] = v

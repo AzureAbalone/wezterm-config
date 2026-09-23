@@ -68,8 +68,7 @@ cells
    :add_segment('date_icon', ICON_DATE .. ' ', colors.date, attr(attr.intensity('Bold')))
    :add_segment('date_text', '', colors.date, attr(attr.intensity('Bold')))
    :add_segment('separator', ' | ', colors.separator)
-   :add_segment('battery_icon', '', colors.battery)
-   :add_segment('battery_text', '', colors.battery, attr(attr.intensity('Bold')))
+   :add_segment('battery', '', colors.battery)
    :add_segment('separator2', ' | ', colors.separator)
    :add_segment('glass_text', '', colors.glass, attr(attr.intensity('Bold')))
 
@@ -113,13 +112,12 @@ M.setup = function(opts)
 
       cells
          :update_segment_text('date_text', wezterm.strftime(valid_opts.date_format))
-         :update_segment_text('battery_icon', battery_icon)
-         :update_segment_text('battery_text', battery_text)
+         :update_segment_text('battery', battery_icon .. ' ' .. battery_text)
          :update_segment_text('glass_text', glass.current_label())
 
       window:set_right_status(
          wezterm.format(
-            cells:render({ 'date_icon', 'date_text', 'separator', 'battery_icon', 'battery_text', 'separator2', 'glass_text' })
+            cells:render({ 'date_icon', 'date_text', 'separator', 'battery', 'separator2', 'glass_text' })
          )
       )
    end)

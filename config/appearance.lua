@@ -28,7 +28,7 @@ return {
 
    -- background: pass in `true` if you want wezterm to start with focus mode on (no bg images)
    -- glass overlay_opacity is computed per-wallpaper via adaptive hint.
-   background = backdrops:initial_options(false),
+   background = backdrops:initial_options({ no_img = false }),
 
    -- scrollbar
    enable_scroll_bar = true,

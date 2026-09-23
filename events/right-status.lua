@@ -4,22 +4,23 @@ local Cells = require('utils.cells')
 local glass = require('utils.glass')
 local OptsValidator = require('utils.opts-validator')
 
-local nf = wezterm.nerdfonts
-local attr = Cells.attr
-
----@alias Event.RightStatusOptionsInput { date_format?: string }
-
----@alias Event.RightStatusOptions { date_format: string }
+---@alias Event.RightStatusOptions { date_format?: string }
 
 ---Setup options for the right status bar
----@type OptsValidator
-local EVENT_OPTS = OptsValidator:new({
+local EVENT_OPTS = {}
+
+---@type OptsSchema
+EVENT_OPTS.schema = {
    {
       name = 'date_format',
       type = 'string',
       default = '%a %H:%M:%S',
    },
-})
+}
+EVENT_OPTS.validator = OptsValidator:new(EVENT_OPTS.schema)
+
+local nf = wezterm.nerdfonts
+local attr = Cells.attr
 
 local M = {}
 
@@ -93,9 +94,9 @@ local function battery_info()
    return charge, icon
 end
 
----@param opts? Event.RightStatusOptionsInput Default: {date_format = '%a %H:%M:%S'}
+---@param opts? Event.RightStatusOptions Default: {date_format = '%a %H:%M:%S'}
 M.setup = function(opts)
-   local valid_opts, err = EVENT_OPTS:validate(opts or {})
+   local valid_opts, err = EVENT_OPTS.validator:validate(opts or {})
 
    if err then
       wezterm.log_error(err)

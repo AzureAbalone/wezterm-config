@@ -1,6 +1,7 @@
 local wezterm = require('wezterm')
 local platform = require('utils.platform')
 local backdrops = require('utils.backdrops')
+local glass = require('utils.glass')
 local act = wezterm.action
 
 local mod = {}
@@ -57,6 +58,8 @@ local keys = {
    -- copy/paste --
    { key = 'c',          mods = 'CTRL|SHIFT',  action = act.CopyTo('Clipboard') },
    { key = 'v',          mods = 'CTRL|SHIFT',  action = act.PasteFrom('Clipboard') },
+   { key = 'c',          mods = mod.SUPER,     action = act.CopyTo('Clipboard') },
+   { key = 'v',          mods = mod.SUPER,     action = act.PasteFrom('Clipboard') },
 
    { key = 'n',          mods = 'CTRL|SHIFT',  action = act.SendString('\u{2660}') },
    { key = 's',          mods = 'CTRL|SHIFT',  action = act.SendString('\u{203D}') },
@@ -169,6 +172,33 @@ local keys = {
       mods = mod.SUPER,
       action = wezterm.action_callback(function(window, _pane)
          backdrops:toggle_focus(window)
+      end)
+   },
+
+   -- glass styling (port from flash-term) --
+   -- SUPER+g        cycle glass style  (neon_glass → ice_glass → mint_glass)
+   -- SUPER+SHIFT+g  cycle glass scene  (focus → cinematic → showcase)
+   -- SUPER+CTRL+g   reset to neon_glass + focus
+   {
+      key = 'g',
+      mods = mod.SUPER,
+      action = wezterm.action_callback(function(window, _pane)
+         glass.cycle_style(window, backdrops.images[backdrops.current_idx])
+      end)
+   },
+   {
+      key = 'g',
+      mods = mod.SUPER_REV,
+      action = wezterm.action_callback(function(window, _pane)
+         glass.cycle_scene(window, backdrops.images[backdrops.current_idx])
+      end)
+   },
+   {
+      key = 'g',
+      mods = 'LEADER',
+      action = wezterm.action_callback(function(window, _pane)
+         require('utils.state').save('current-style', { style = 'neon_glass', scene = 'focus' })
+         glass.apply(window, backdrops.images[backdrops.current_idx])
       end)
    },
 

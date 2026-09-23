@@ -1,5 +1,6 @@
 local wezterm = require('wezterm')
 local colors = require('colors.custom')
+local glass = require('utils.glass')
 
 -- Seeding random numbers before generating for use
 -- Known issue with lua math library
@@ -60,28 +61,27 @@ function BackDrops:scan_images_dir()
 end
 
 ---Create the `background` options with the current image
+---Uses glass.build_background so the overlay color + opacity adapt to
+---the active glass style/scene and to the wallpaper's brightness hint.
 ---@private
----@return BackgroundLayer[]
-function BackDrops:_gen_opts()
-   local bg_opts = {}
-
-   if #self.images > 0 then
-      table.insert(bg_opts, {
-         source = { File = self.images[self.current_idx] },
-         horizontal_align = 'Center',
-      })
+---@return table
+function BackDrops:_create_opts()
+   local path = self.images[self.current_idx]
+   local opts = glass.build_background(path)
+   if #opts > 0 then
+      return opts
    end
-
-   table.insert(bg_opts, {
-      source = { Color = colors.background },
-      height = '120%',
-      width = '120%',
-      vertical_offset = '-10%',
-      horizontal_offset = '-10%',
-      opacity = 0.96,
-   })
-
-   return bg_opts
+   -- fallback if glass module returned nothing (no path)
+   return {
+      {
+         source = { Color = colors.background },
+         height = '120%',
+         width = '120%',
+         vertical_offset = '-10%',
+         horizontal_offset = '-10%',
+         opacity = 0.7,
+      },
+   }
 end
 
 ---Create the `background` options for focus mode
@@ -111,7 +111,9 @@ function BackDrops:initial_options(opts)
       return self:_gen_no_img_opts()
    end
 
-   return self:_gen_opts()
+   -- defer to glass so the first paint already has the right overlay
+   -- color + adaptive opacity for whatever wallpaper is active.
+   return self:_create_opts()
 end
 
 ---Override the current window options for background

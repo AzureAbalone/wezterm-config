@@ -1,13 +1,17 @@
 local gpu_adapters = require('utils.gpu-adapter')
 local backdrops = require('utils.backdrops')
 local colors = require('colors.custom')
+local glass = require('utils.glass')
 
----@type Config
+-- Resolve glass style/scene once at config load. Persisted via
+-- utils.state so the user's last pick survives restarts.
+local _glass_style, _glass_scene, _glass_overlay, _glass_win_op, _glass_text_op, _glass_adapt =
+   glass.resolve()
 return {
    max_fps = 120,
-   front_end = 'WebGpu', ---@type 'WebGpu' | 'OpenGL' | 'Software'
-   webgpu_power_preference = 'HighPerformance',
-   webgpu_preferred_adapter = gpu_adapters:pick_best(),
+   front_end = 'OpenGL', ---@type 'WebGpu' | 'OpenGL' | 'Software'
+   -- webgpu_power_preference = 'HighPerformance',
+   -- webgpu_preferred_adapter = gpu_adapters:pick_best(),
    -- webgpu_preferred_adapter = gpu_adapters:pick_manual('Dx12', 'IntegratedGpu'),
    -- webgpu_preferred_adapter = gpu_adapters:pick_manual('Gl', 'Other'),
    underline_thickness = '1.5pt',
@@ -23,7 +27,8 @@ return {
    colors = colors,
 
    -- background: pass in `true` if you want wezterm to start with focus mode on (no bg images)
-   background = backdrops:initial_options({ no_img = false }),
+   -- glass overlay_opacity is computed per-wallpaper via adaptive hint.
+   background = backdrops:initial_options(false),
 
    -- scrollbar
    enable_scroll_bar = true,
@@ -51,6 +56,9 @@ return {
    },
    adjust_window_size_when_changing_font_size = false,
    window_close_confirmation = 'NeverPrompt',
+   window_background_opacity = _glass_win_op,
+   text_background_opacity = _glass_text_op,
+   macos_window_background_blur = 2,
    window_frame = {
       active_titlebar_bg = '#090909',
       -- font = fonts.font,

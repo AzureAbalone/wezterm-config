@@ -10,6 +10,7 @@ local GLYPH_SEMI_CIRCLE_LEFT = nf.ple_left_half_circle_thick --[[ '' ]]
 local GLYPH_SEMI_CIRCLE_RIGHT = nf.ple_right_half_circle_thick --[[ '' ]]
 local GLYPH_KEY_TABLE = nf.md_table_key --[[ '󱏅' ]]
 local GLYPH_KEY = nf.md_key --[[ '󰌆' ]]
+local GLYPH_APPLE = nf.md_apple --[[ '' ]]
 
 ---@type table<string, Cells.SegmentColors>
 local colors = {
@@ -21,7 +22,7 @@ local cells = Cells:new()
 
 cells
    :add_segment(1, GLYPH_SEMI_CIRCLE_LEFT, colors.scircle, attr(attr.intensity('Bold')))
-   :add_segment(2, ' ', colors.default, attr(attr.intensity('Bold')))
+   :add_segment(2, GLYPH_APPLE, colors.default, attr(attr.intensity('Bold')))
    :add_segment(3, ' ', colors.default, attr(attr.intensity('Bold')))
    :add_segment(4, GLYPH_SEMI_CIRCLE_RIGHT, colors.scircle, attr(attr.intensity('Bold')))
 

@@ -1,6 +1,7 @@
 local wezterm = require('wezterm')
 local umath = require('utils.math')
 local Cells = require('utils.cells')
+local glass = require('utils.glass')
 local OptsValidator = require('utils.opts-validator')
 
 local nf = wezterm.nerdfonts
@@ -22,7 +23,6 @@ local EVENT_OPTS = OptsValidator:new({
 
 local M = {}
 
-local ICON_SEPARATOR = nf.oct_dash
 local ICON_DATE = nf.fa_calendar
 
 ---@type string[]
@@ -57,17 +57,20 @@ local charging_icons = {
 local colors = {
    date      = { fg = '#fab387', bg = 'rgba(0, 0, 0, 0.4)' },
    battery   = { fg = '#f9e2af', bg = 'rgba(0, 0, 0, 0.4)' },
+   glass     = { fg = '#cba6f7', bg = 'rgba(0, 0, 0, 0.4)' },
    separator = { fg = '#74c7ec', bg = 'rgba(0, 0, 0, 0.4)' }
 }
 
 local cells = Cells:new()
 
 cells
-   :add_segment('date_icon', ICON_DATE .. '  ', colors.date, attr(attr.intensity('Bold')))
+   :add_segment('date_icon', ICON_DATE .. ' ', colors.date, attr(attr.intensity('Bold')))
    :add_segment('date_text', '', colors.date, attr(attr.intensity('Bold')))
-   :add_segment('separator', ' ' .. ICON_SEPARATOR .. '  ', colors.separator)
+   :add_segment('separator', ' | ', colors.separator)
    :add_segment('battery_icon', '', colors.battery)
    :add_segment('battery_text', '', colors.battery, attr(attr.intensity('Bold')))
+   :add_segment('separator2', ' | ', colors.separator)
+   :add_segment('glass_text', '', colors.glass, attr(attr.intensity('Bold')))
 
 ---@return string, string
 local function battery_info()
@@ -87,7 +90,7 @@ local function battery_info()
       end
    end
 
-   return charge, icon .. ' '
+   return charge, icon
 end
 
 ---@param opts? Event.RightStatusOptionsInput Default: {date_format = '%a %H:%M:%S'}
@@ -98,8 +101,12 @@ M.setup = function(opts)
       wezterm.log_error(err)
    end
 
-   ---@cast valid_opts Event.RightStatusOptions
-
+   -- Bind to update-status (1Hz render tick on the focused window) rather
+   -- than update-right-status so battery_info() is re-queried every second
+   -- even when the previous formatted text was byte-identical to the prior
+   -- render. update-right-status is short-circuited by wezterm's render loop
+   -- when the text is unchanged, which made battery % appear "stuck" between
+   -- macOS power-source pushes.
    wezterm.on('update-status', function(window, _pane)
       local battery_text, battery_icon = battery_info()
 
@@ -107,10 +114,11 @@ M.setup = function(opts)
          :update_segment_text('date_text', wezterm.strftime(valid_opts.date_format))
          :update_segment_text('battery_icon', battery_icon)
          :update_segment_text('battery_text', battery_text)
+         :update_segment_text('glass_text', glass.current_label())
 
       window:set_right_status(
          wezterm.format(
-            cells:render({ 'date_icon', 'date_text', 'separator', 'battery_icon', 'battery_text' })
+            cells:render({ 'date_icon', 'date_text', 'separator', 'battery_icon', 'battery_text', 'separator2', 'glass_text' })
          )
       )
    end)

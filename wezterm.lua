@@ -14,6 +14,13 @@ require('events.tab-title').setup({
 })
 require('events.new-tab-button').setup()
 require('events.gui-startup').setup()
+-- Auto-cycle wallpaper every 5 minutes (port from flash-term).
+-- Press SUPER+g (or SUPER+CTRL+g) to cycle manually between picks.
+require('events.wallpaper-timer').setup({
+   interval = 300,
+   mode = 'random',
+   only_when_focused = false,
+})
 
 return Config:init()
    :append(require('config.appearance'))
